@@ -30,7 +30,9 @@ class DownloadSheetActivity : AppCompatActivity() {
         qualityInput.setText("720p", false)
 
         val supplied = intent.getStringExtra(EXTRA_URL)
-        urlInput.setText(supplied ?: UrlTools.clipboardUrl(this) ?: Prefs.lastUrl(this).orEmpty())
+        val cookies = intent.getStringExtra(EXTRA_COOKIES)
+        val mediaUrl = intent.getStringExtra(EXTRA_MEDIA_URL)
+        urlInput.setText(supplied ?: Prefs.lastUrl(this).orEmpty())
 
         findViewById<android.view.View>(R.id.sheetPasteButton).setOnClickListener {
             val url = UrlTools.clipboardUrl(this)
@@ -45,7 +47,7 @@ class DownloadSheetActivity : AppCompatActivity() {
         findViewById<android.view.View>(R.id.startDownloadButton).setOnClickListener {
             val url = urlInput.text?.toString()?.trim().orEmpty()
             if (!UrlTools.isWebUrl(url)) {
-                Toast.makeText(this, "Copy or enter the Brave page link first", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "This browser page does not have a valid web address.", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             if (!EngineState.ready) {
@@ -54,7 +56,7 @@ class DownloadSheetActivity : AppCompatActivity() {
             }
             Prefs.setLastUrl(this, url)
             val type = if (mp3Radio.isChecked) DownloadService.TYPE_MP3 else DownloadService.TYPE_MP4
-            DownloadService.start(this, url, type, qualityInput.text.toString())
+            DownloadService.start(this, url, type, qualityInput.text.toString(), cookies, mediaUrl)
             Toast.makeText(this, "Download started", Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -64,9 +66,13 @@ class DownloadSheetActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_URL = "url"
-        fun open(context: Context, url: String?) {
+        private const val EXTRA_COOKIES = "cookies"
+        private const val EXTRA_MEDIA_URL = "media_url"
+        fun open(context: Context, url: String?, cookies: String? = null, mediaUrl: String? = null) {
             context.startActivity(Intent(context, DownloadSheetActivity::class.java).apply {
                 putExtra(EXTRA_URL, url)
+                putExtra(EXTRA_COOKIES, cookies)
+                putExtra(EXTRA_MEDIA_URL, mediaUrl)
             })
         }
     }

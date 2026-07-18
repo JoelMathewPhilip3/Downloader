@@ -12,6 +12,7 @@ class DownloaderApplication : Application() {
             try {
                 YoutubeDL.getInstance().init(this)
                 FFmpeg.getInstance().init(this)
+                EngineUpdater.updateNightly(this, force = false)
                 EngineState.ready = true
             } catch (t: Throwable) {
                 EngineState.error = t.message ?: "Downloader initialization failed"
@@ -24,4 +25,6 @@ class DownloaderApplication : Application() {
 object EngineState {
     @Volatile var ready: Boolean = false
     @Volatile var error: String? = null
+    @Volatile var updating: Boolean = false
+    @Volatile var updateMessage: String? = null
 }

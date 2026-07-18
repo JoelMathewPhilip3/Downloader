@@ -13,7 +13,20 @@ object UrlTools {
     }
 
     fun isWebUrl(value: String): Boolean =
-        value.startsWith("https://", true) && Patterns.WEB_URL.matcher(value).matches()
+        (value.startsWith("https://", true) || value.startsWith("http://", true)) &&
+            Patterns.WEB_URL.matcher(value).matches()
+
+    fun normalizeBrowserUrl(raw: String): String? {
+        val value = raw.trim().removePrefix("URL: ").trim()
+        if (value.isBlank() || value.contains(' ') || value.length > 2048) return null
+        if (isWebUrl(value)) return value
+        // Brave may expose an omnibox URL without the scheme.
+        if (value.contains('.') && !value.startsWith("javascript:", true) && !value.startsWith("data:", true)) {
+            val candidate = "https://$value"
+            if (Patterns.WEB_URL.matcher(candidate).matches()) return candidate
+        }
+        return null
+    }
 
     fun copy(context: Context, value: String) {
         context.getSystemService(ClipboardManager::class.java)
